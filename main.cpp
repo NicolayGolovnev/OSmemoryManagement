@@ -38,17 +38,19 @@ public:
 
 int MEMORY[1000]; // Ќаша оперативна€ пам€ть = 1.000.000 байт, хранитс€ в 1.000 блоках каждый по 1.000 байт
 vector <Process> query; // наша приоритетна€ очередь приложений
+vector <Process> procInMemory; // процессы, которые хран€тс€ в пам€ти и работают в данный момент
 
 //если пам€ти недостаточно, то подаетс€ текущий процесс в файл своппинга и ожидает, когда освободитьс€ пам€ть достаточно дл€ того,
 //чтобы выгрузить ее в пам€ть дл€ дальнейшей работы с ним
 
-int main(){
+void updateStatusMonitor(){
 
     //дл€ работы с цветом в консоли
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     //15 - цвет фона, 0 - цвет текста
     //SetConsoleTextAttribute(hConsole, (WORD) ((15 << 4) | 0));
 
+    //test memory slots
     MEMORY[50] = 1;
     MEMORY[0] = 1;
     MEMORY[100] = 1;
@@ -68,13 +70,13 @@ int main(){
         flag = 0;
         for (int j = 0; j < 10; j++)
             if (MEMORY[10 * i + j] == 1){
-                SetConsoleTextAttribute(hConsole, (WORD) ((15 << 4) | 4));
-                cout << "#"; 
+                SetConsoleTextAttribute(hConsole, (WORD) ((14 << 4) | 8));
+                cout << " "; 
                 flag = 1;
                 break;
             }
         if (!flag){
-            SetConsoleTextAttribute(hConsole, (WORD) ((15 << 4) | 0));
+            SetConsoleTextAttribute(hConsole, (WORD) ((8 << 4) | 14));
             cout << " "; 
         }
     }
@@ -90,13 +92,18 @@ int main(){
     cout << "\n\nCurrent opening processes:\n";
     for (int i = 0; i < query.size(); i++){
         cout << i + 1 << ". " << query[i].getName() << " - " << query[i].getMemory() << " - ";
+        //сделать вывод мест хранени€ в пам€ти
         if (query[i].getSwapping())
             cout << "IN SWAP FILE\n";
         else
             cout << "EXECUTABLE IN MEMORY\n";
     }
     cout << "\n";
+}
 
+int main(){
+
+    updateStatusMonitor();
 
     system("pause");
 }
