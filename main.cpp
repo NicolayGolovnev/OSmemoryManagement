@@ -6,7 +6,7 @@
 #include <time.h>
 #include <conio.h> // for getch()
 
-#define CAPACITY 1000000
+#define CAPACITY 1000
 
 using namespace std;
 
