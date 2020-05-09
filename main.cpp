@@ -62,6 +62,14 @@ public:
     }
 };
 
+//перегрузка операторов для сортировки вектора-массива
+bool operator>(Process a, Process b){
+    return (a.getPriority() > b.getPriority() ? true : false);
+}
+bool operator<(Process a, Process b){
+    return (a.getPriority() < b.getPriority() ? true : false);
+}
+
 int MEMORY[1000]; // Наша оперативная память = 1.000.000 байт, хранится в 1.000 блоках каждый по 1.000 байт
 vector <Process> query; // наша приоритетная очередь приложений
 vector <Process> procInMemory; // процессы, которые хранятся в памяти и работают в данный момент
@@ -135,6 +143,7 @@ bool updStatusMonitor(clock_t timeProgram){
             //MEMORY[rand() % 1000] = rand() % 2;
             //updProcesses();
             updMemory(myTime);
+            sort(query.begin(), query.end());
 
             system("cls");
             cout << "MONITOR STATUS\t\tWORKING TIME PROGRAMM: " << myTime << "sec\n";
@@ -167,14 +176,14 @@ bool updStatusMonitor(clock_t timeProgram){
 
             cout << "\n\nCurrent opening processes:\n";
             for (int i = 0; i < query.size(); i++){
-                cout << i + 1 << ". " << query[i].getName() << " (Priority " << query[i].getPriority() << ") - ";
+                cout << endl << i + 1 << ". " << query[i].getName() << " (Priority " << query[i].getPriority() << ") - ";
                 cout << query[i].getMemory() << " byte - ";
                 cout << "TIME LEFT: " << query[i].getTimeLife() << " - ";
                 //сделать вывод мест хранения в памяти
                 if (query[i].getSwapping() == 1)
-                    cout << "IN SWAP FILE\n";
+                    cout << "IN SWAP FILE";
                 else if (query[i].getSwapping() == 0)
-                    cout << "EXECUTE IN MEMORY\n";
+                    cout << "EXECUTE IN MEMORY";
             }
             cout << "\nPress 'q' for exit from monitor status or another key for update...\n";
             oldTime = myTime;
