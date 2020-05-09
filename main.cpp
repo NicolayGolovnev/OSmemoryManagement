@@ -3,6 +3,7 @@
 #include <vector>
 #include <windows.h>
 #include <time.h>
+#include <conio.h> // for getch()
 
 using namespace std;
 
@@ -44,82 +45,108 @@ vector <Process> procInMemory; // процессы, которые хранятся в памяти и работают
 //если памяти недостаточно, то подается текущий процесс в файл своппинга и ожидает, когда освободиться память достаточно для того,
 //чтобы выгрузить ее в память для дальнейшей работы с ним
 
-void updateStatusMonitor(){
+bool updateStatusMonitor(clock_t timeProgramm){
 
     //для работы с цветом в консоли
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     //15 - цвет фона, 0 - цвет текста
     //SetConsoleTextAttribute(hConsole, (WORD) ((15 << 4) | 0));
 
-    //test memory slots
-    MEMORY[50] = 1;
-    MEMORY[0] = 1;
-    MEMORY[100] = 1;
-    MEMORY[350] = 1;
-
     //monitor status
-    system("cls");
-    cout << "MONITOR STATUS\n";
-
-    cout << "\n\nRandom Access Memory:\n";
-    cout << " ";
-    for (int i = 0; i < 100; i++)
-        cout << "-";
-    cout << " \n|";
-    char flag = 0;
-    for (int i = 0; i < 100; i++){
-        flag = 0;
-        for (int j = 0; j < 10; j++)
-            if (MEMORY[10 * i + j] == 1){
-                SetConsoleTextAttribute(hConsole, (WORD) ((14 << 4) | 8));
-                cout << " "; 
-                flag = 1;
-                break;
-            }
-        if (!flag){
-            SetConsoleTextAttribute(hConsole, (WORD) ((8 << 4) | 14));
-            cout << " "; 
-        }
-    }
-    SetConsoleTextAttribute(hConsole, (WORD) ((0 << 4) | 15));
-    cout << "|\n";
-    cout << " ";
-    for (int i = 0; i < 100; i++)
-        cout << "-";
-    cout << " \n";
-    
-        
-
-    cout << "\n\nCurrent opening processes:\n";
-    for (int i = 0; i < query.size(); i++){
-        cout << i + 1 << ". " << query[i].getName() << " - " << query[i].getMemory() << " - ";
-        //сделать вывод мест хранения в памяти
-        if (query[i].getSwapping())
-            cout << "IN SWAP FILE\n";
-        else
-            cout << "EXECUTABLE IN MEMORY\n";
-    }
-    cout << "\n";
-}
-
-void workingTime(){
     clock_t myTime = clock() / CLOCKS_PER_SEC, oldTime = myTime;
-    srand(time(0));
-    int counterTime = 0, counter = 0;
-
-    while (1){
+    char exit = 'a';
+    cout << "Press key for update...\n";
+    while (exit != 'q'){
         myTime = clock() / CLOCKS_PER_SEC;
+
         if (myTime - oldTime  >= 1){
-            cout << myTime << endl;
+            //test memory slots
+            //MEMORY[rand() % 1000] = rand() % 2;
+
+            system("cls");
+            cout << "MONITOR STATUS\t\tWORKING TIME PROGRAMM: " << myTime << "sec\n";
+            cout << "\n\nRandom Access Memory:\n";
+            cout << " ";
+            for (int i = 0; i < 100; i++)
+                cout << "-";
+            cout << " \n|";
+            char flag = 0;
+            for (int i = 0; i < 100; i++){
+                flag = 0;
+                for (int j = 0; j < 10; j++)
+                    if (MEMORY[10 * i + j] == 1){
+                        SetConsoleTextAttribute(hConsole, (WORD) ((14 << 4) | 8));
+                        cout << " "; 
+                        flag = 1;
+                        break;
+                    }
+                if (!flag){
+                    SetConsoleTextAttribute(hConsole, (WORD) ((8 << 4) | 14));
+                    cout << " "; 
+                }
+            }
+            SetConsoleTextAttribute(hConsole, (WORD) ((0 << 4) | 15));
+            cout << "|\n";
+            cout << " ";
+            for (int i = 0; i < 100; i++)
+                cout << "-";
+            cout << " \n";
+
+            cout << "\n\nCurrent opening processes:\n";
+            for (int i = 0; i < query.size(); i++){
+                cout << i + 1 << ". " << query[i].getName() << " - " << query[i].getMemory() << " - ";
+                //сделать вывод мест хранения в памяти
+                if (query[i].getSwapping())
+                    cout << "IN SWAP FILE\n";
+                else
+                    cout << "EXECUTE IN MEMORY\n";
+            }
+            cout << "\nPress 'q' for exit from monitor status or another key for update...\n";
             oldTime = myTime;
         }
+        exit = getch();
     }
+    return 1;
+}
+
+bool createProcess(){
+
+
+    return 1;
 }
 
 int main(){
+    srand(time(NULL));//для тестирование памяти
     clock_t myTime = clock() / CLOCKS_PER_SEC, oldTime = myTime;
+    char exit = 1;
+    while (exit){
+        char choose;
+        do{
+            system("cls");
+            cout << "\tOS Memory Management Laboratory Work, main menu:\n";
+            cout << "\t\tChoose the right number!\n";
+            cout << "1. Create process\n";
+            cout << "2. Status monitor\n";
+            cout << "3. Exit\n";
+            choose = getch();
+        }while (choose < '1' || choose > '3');
+        switch (choose)
+        {
+            case '1':
+                cout << "EXECUTE 1\n";
+                //createProcess();
+            break;
 
-
-
-    system("pause");
+            case '2':
+                cout << "EXECUTE 2\n";
+                updateStatusMonitor(myTime);
+            break;
+            
+            case '3':
+                exit = 0;
+                cout << "Exit from the programm, press any symbol...\n";
+                getch();
+            break;
+        }
+    }
 }
