@@ -6,14 +6,16 @@
 #include <time.h>
 #include <conio.h> // for getch()
 
+#define CAPACITY 1000000
+
 using namespace std;
 
 class Process{
 private:
-    string name = ""; // название процесса
-    int timeLife = -1; // врем€ жизни процесса
-    int priority = -1; // приоритет процесса
-    int memory = 0; // сколько занимает места процесс в оперативной пам€ти
+    string name; // название процесса
+    int memory; // сколько занимает места процесс в оперативной пам€ти
+    int priority; // приоритет процесса
+    int timeLife; // врем€ жизни процесса
     clock_t lastAccess; // врем€ последнего обращени€ к процессу
     
     int swapping = -1; //указывает, находитс€ ли процесс в файле своппинга или нет
@@ -47,6 +49,10 @@ public:
     pair <int, int> getInMemory(){
         return this->inMemory;
     }
+    int getSwapping(){
+        if (this->swapping == -1) return -1;
+        else return (this->swapping == 1 ? true : false);
+    }
 
     void setTimeLife(int time){
         this->timeLife = time;
@@ -54,12 +60,14 @@ public:
     void setLastAccess(clock_t time){
         this->lastAccess = time;
     }
+    void setSwapping(int swap){
+        this->swapping = swap;
+    }
+    void setInMemory(int a, int b){
+        this->inMemory = make_pair(a, b);
+    }
 
     
-    int getSwapping(){
-        if (this->swapping == -1) return -1;
-        else return (this->swapping == 1 ? true : false);
-    }
 };
 
 //перегрузка операторов дл€ сортировки вектора-массива
@@ -70,7 +78,7 @@ bool operator<(Process a, Process b){
     return (a.getPriority() < b.getPriority() ? true : false);
 }
 
-int MEMORY[1000]; // Ќаша оперативна€ пам€ть = 1.000.000 байт, хранитс€ в 1.000 блоках каждый по 1.000 байт
+int MEMORY[CAPACITY]; // Ќаша оперативна€ пам€ть = 1.000.000 байт, хранитс€ в 1.000 блоках каждый по 1.000 байт
 vector <Process> query; // наша приоритетна€ очередь приложений
 vector <Process> procInMemory; // процессы, которые хран€тс€ в пам€ти и работают в данный момент
 
@@ -92,7 +100,7 @@ bool createProcess(){
     Process q(name, mem, prior, timeLife);
     query.push_back(q);
 
-    cout << "Process successfully created!";
+    cout << "Process successfully created!\n";
     cout << "Press any symbol for continue...";
     getch();
 
@@ -103,8 +111,10 @@ void updMemory(clock_t time){
     vector <int> forDelete;
 
     for (int i = 0; i < query.size(); i++){
-        query[i].setTimeLife(query[i].getTimeLife() - (time - query[i].getLastAccess()));
-        query[i].setLastAccess(time);
+        if (query[i].getSwapping() == 0){
+            query[i].setTimeLife(query[i].getTimeLife() - (time - query[i].getLastAccess()));
+            query[i].setLastAccess(time);
+        }
         if (query[i].getTimeLife() <= 0){
             for (int refresh = query[i].getInMemory().first; refresh <= query[i].getInMemory().second; refresh++)
                 MEMORY[refresh] = 0;
@@ -112,16 +122,67 @@ void updMemory(clock_t time){
         }
     }
     //удаление процессов из вектора, так как они нам больше не нужны
-    sort(forDelete.begin(), forDelete.end());
-    for (int i = 0; i < forDelete.size(); i++){
-        query.erase(query.begin() + forDelete[i]);
-        for (int j = i; j < forDelete.size(); j++)
-            forDelete[j]--;
+    if (!forDelete.empty()){
+        sort(forDelete.begin(), forDelete.end());
+        for (int i = 0; i < forDelete.size(); i++){
+            query.erase(query.begin() + forDelete[i]);
+            for (int j = i; j < forDelete.size(); j++)
+                forDelete[j]--;
+        }
     }
+    
+}
+
+int goInMemory(Process* exe){
+    //смотрим, сколько нужно пам€ти дл€ процесса
+    int memory = exe->getMemory();
+    int begin;
+    for (int i = 0; i < CAPACITY; i++){
+        int noSpace = 0;
+        for (int j = i; j < i + memory; j++)
+            if (MEMORY[j] == 1){
+                noSpace = 1;
+                break;
+            }
+        
+        if (!noSpace){
+            //cout << "POS: " << i << " - " << i + memory << endl;
+            exe->setInMemory(i, i + memory);
+            return 1;
+        }
+    }
+    return 0;
 }
 
 void updProcesses(){
-    
+    sort(query.begin(), query.end());
+    for (int i = 0; i < query.size(); i++){
+        if (query[i].getSwapping() == -1){
+            //пишем в пам€ть этот процесс
+            int prior = query[i].getPriority();
+            //cout << "1";
+            int successfullyEntered = goInMemory(&query[i]);
+            //cout << "POS: " << query[i].getInMemory().first << " - " << query[i].getInMemory().second << endl;
+            //мен€ем параметр своппинга
+            if (successfullyEntered){
+                for (int j = query[i].getInMemory().first; j <= query[i].getInMemory().second; j++)
+                    MEMORY[j] = 1;
+                query[i].setSwapping(0);
+            }
+            else 
+                query[i].setSwapping(1);
+        }
+        else if (query[i].getSwapping() == 1){
+            int successfullyEntered = goInMemory(&query[i]);
+            //cout << "POS: " << query[i].getInMemory().first << " - " << query[i].getInMemory().second << endl;
+            //мен€ем параметр своппинга
+            if (successfullyEntered){
+                for (int j = query[i].getInMemory().first; j <= query[i].getInMemory().second; j++)
+                    MEMORY[j] = 1;
+                query[i].setSwapping(0);
+            }
+        }
+    } 
 }
 
 bool updStatusMonitor(clock_t timeProgram){
@@ -142,10 +203,10 @@ bool updStatusMonitor(clock_t timeProgram){
             //test memory slots
             //MEMORY[rand() % 1000] = rand() % 2;
             //updProcesses();
-            updMemory(myTime);
-            sort(query.begin(), query.end());
-
             system("cls");
+            updMemory(myTime);
+            updProcesses();
+            
             cout << "MONITOR STATUS\t\tWORKING TIME PROGRAMM: " << myTime << "sec\n";
             cout << "\n\nRandom Access Memory:\n";
             cout << " ";
@@ -155,8 +216,8 @@ bool updStatusMonitor(clock_t timeProgram){
             char flag = 0;
             for (int i = 0; i < 100; i++){
                 flag = 0;
-                for (int j = 0; j < 10; j++)
-                    if (MEMORY[10 * i + j] == 1){
+                for (int j = 0; j < CAPACITY / 100; j++)
+                    if (MEMORY[CAPACITY / 100 * i + j] == 1){
                         SetConsoleTextAttribute(hConsole, (WORD) ((14 << 4) | 8));
                         cout << " "; 
                         flag = 1;
@@ -177,15 +238,17 @@ bool updStatusMonitor(clock_t timeProgram){
             cout << "\n\nCurrent opening processes:\n";
             for (int i = 0; i < query.size(); i++){
                 cout << endl << i + 1 << ". " << query[i].getName() << " (Priority " << query[i].getPriority() << ") - ";
-                cout << query[i].getMemory() << " byte - ";
-                cout << "TIME LEFT: " << query[i].getTimeLife() << " - ";
+                cout << query[i].getMemory() << " byte, pos(" << query[i].getInMemory().first << ":" << query[i].getInMemory().second;
+                cout << ") - " << "TIME LEFT: " << query[i].getTimeLife() << " - ";
                 //сделать вывод мест хранени€ в пам€ти
                 if (query[i].getSwapping() == 1)
                     cout << "IN SWAP FILE";
                 else if (query[i].getSwapping() == 0)
                     cout << "EXECUTE IN MEMORY";
+                else
+                    cout << "JUST CREATED";
             }
-            cout << "\nPress 'q' for exit from monitor status or another key for update...\n";
+            cout << "\n\n\nPress 'q' for exit from monitor status or another key for update...\n";
             oldTime = myTime;
         }
         exit = getch();
