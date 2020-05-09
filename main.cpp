@@ -11,30 +11,42 @@ class Process{
 private:
     string name = ""; // название процесса
     int timeLife = -1; // время жизни процесса
-    vector <pair<int, int> > inMemory; // места расположения процесса в памяти
     int priority = -1; // приоритет процесса
     int memory = 0; // сколько занимает места процесс в оперативной памяти
+    clock_t timeCreate; // время создания процесса
+    
     char swapping = 0; //указывает, находится ли процесс в файле своппинга или нет
+    pair<int, int> inMemory; // место расположения процесса в памяти
     
 public:
     //Process(Name, Memory, Priority, Time Life)
     Process(string n, int mem, int pr, int time){
-        name = n;
-        memory = mem;
-        priority = pr;
-        timeLife = time;
+        this->name = n;
+        this->memory = mem;
+        this->priority = pr;
+        this->timeLife = time;
     };
 
     string getName(){
-        return name;
+        return this->name;
     }
-
-    bool getSwapping(){
-        return (swapping == 1 ? true : false);
-    }
-
     int getMemory(){
-        return memory;
+        return this->memory;
+    }
+    int getTimeLife(){
+        return this->timeLife;
+    }
+    int getPriority(){
+        return this->priority;
+    }
+
+    void setTimeLife(int time){
+        this->timeLife = time;
+    }
+
+    
+    bool getSwapping(){
+        return (this->swapping == 1 ? true : false);
     }
 };
 
@@ -94,7 +106,9 @@ bool updateStatusMonitor(clock_t timeProgramm){
 
             cout << "\n\nCurrent opening processes:\n";
             for (int i = 0; i < query.size(); i++){
-                cout << i + 1 << ". " << query[i].getName() << " - " << query[i].getMemory() << " - ";
+                cout << i + 1 << ". " << query[i].getName() << " (Priority " << query[i].getPriority() << ") - ";
+                cout << query[i].getMemory() << " byte - ";
+                cout << "TIME LEFT: " << query[i].getTimeLife() << " - ";
                 //сделать вывод мест хранения в памяти
                 if (query[i].getSwapping())
                     cout << "IN SWAP FILE\n";
@@ -110,7 +124,19 @@ bool updateStatusMonitor(clock_t timeProgramm){
 }
 
 bool createProcess(){
+    system("cls");
+    cout << "Enter a name of process: ";
+    string name;
+    cin >> name;
+    cout << "Enter a priority of process (0 - 5): ";
+    int prior; cin >> prior;
+    cout << "How long the process will be able (in sec)? ";
+    int timeLife; cin >> timeLife;
+    cout << "How much memory is needed? ";
+    int mem; cin >> mem;
 
+    Process q(name, mem, prior, timeLife);
+    query.push_back(q);
 
     return 1;
 }
@@ -134,7 +160,7 @@ int main(){
         {
             case '1':
                 cout << "EXECUTE 1\n";
-                //createProcess();
+                createProcess();
             break;
 
             case '2':
