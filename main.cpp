@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <windows.h>
+#include <time.h>
 
 using namespace std;
 
@@ -101,9 +102,24 @@ void updateStatusMonitor(){
     cout << "\n";
 }
 
-int main(){
+void workingTime(){
+    clock_t myTime = clock() / CLOCKS_PER_SEC, oldTime = myTime;
+    srand(time(0));
+    int counterTime = 0, counter = 0;
 
-    updateStatusMonitor();
+    while (1){
+        myTime = clock() / CLOCKS_PER_SEC;
+        if (myTime - oldTime  >= 1){
+            cout << myTime << endl;
+            oldTime = myTime;
+        }
+    }
+}
+
+int main(){
+    clock_t myTime = clock() / CLOCKS_PER_SEC, oldTime = myTime;
+
+
 
     system("pause");
 }
