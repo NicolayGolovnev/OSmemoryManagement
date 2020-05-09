@@ -22,15 +22,27 @@ private:
     pair<int, int> inMemory; // место расположения процесса в памяти
     
 public:
-    //Process(Name, Memory, Priority, Time Life)
-    Process(string n, int mem, int pr, int time){
+    // Process(Name, Memory, Priority, Time Life)
+    Process(string n, int mem, int priority, int time){
         this->name = n;
         this->memory = mem;
-        this->priority = pr;
+        this->priority = priority;
         this->timeLife = time;
         // последнее время использование процесса, для правильного отображения остатка времени
         this->lastAccess = clock() / CLOCKS_PER_SEC;
-    };
+    }
+
+    // Process(Name, Memory, Priority, Time Life, Pos in Memory)
+    // Process(name, prior, memory, timeLife, lastAccess, inMem1, inMem2)
+    Process(string n, int priority, int mem, int timeLife, clock_t lastAccess, int inMem1, int inMem2){
+        this->name = n;
+        this->memory = mem;
+        this->priority = priority;
+        this->timeLife = timeLife;
+        // последнее время использование процесса, для правильного отображения остатка времени
+        this->lastAccess = lastAccess;
+        this->inMemory = make_pair(inMem1, inMem2);
+    }
 
     string getName(){
         return this->name;
@@ -67,8 +79,6 @@ public:
     void setInMemory(int a, int b){
         this->inMemory = make_pair(a, b);
     }
-
-    
 };
 
 // перегрузка операторов для сортировки вектора-массива
@@ -278,6 +288,17 @@ bool updStatusMonitor(clock_t timeProgram){
 int main(){
     srand(time(NULL));//для тестирование памяти
     clock_t myTime = clock() / CLOCKS_PER_SEC, oldTime = myTime;
+    ifstream in("processes.txt");
+    if (in){
+        int n; in >> n;
+        string name;
+        int prior, memory, timeLife, swap, inMem1, inMem2;
+        clock_t lastAccess;
+        for (int i = 0; i < n; i++){
+            in >> name >> prior >> memory >> timeLife >> lastAccess >> swap >> inMem1 >> inMem2;
+            query.push_back(Process(name, prior, memory, timeLife, 0, inMem1, inMem2));
+        }
+    }
     char exit = 1;
     while (exit){
         char choose;
@@ -286,10 +307,11 @@ int main(){
             cout << "\tOS Memory Management Laboratory Work, main menu:\n";
             cout << "\t\tChoose the right number!\n";
             cout << "1. Create process\n";
-            cout << "2. Status monitor\n";
-            cout << "3. Exit\n";
+            cout << "2. Kill the process\n";
+            cout << "\n3. Status monitor\n";
+            cout << "5. Exit\n";
             choose = getch();
-        }while (choose < '1' || choose > '3');
+        }while (choose < '1' || choose > '5');
         switch (choose)
         {
             case '1':
@@ -297,14 +319,22 @@ int main(){
                 createProcess();
             break;
 
-            case '2':
+            case '3':
                 //cout << "EXECUTE 2\n";
                 updStatusMonitor(myTime);
             break;
             
-            case '3':
+            case '5':
                 exit = 0;
                 cout << "Exit from the programm, press any symbol...\n";
+                ofstream out("processes.txt");
+                out << query.size() << endl;
+                for (int i = 0; i < query.size(); i++){
+                    out << query[i].getName() << " " << query[i].getPriority() << " " << query[i].getMemory() << " ";
+                    out << query[i].getTimeLife() << " " << (int)(query[i].getLastAccess()) << " " << query[i].getSwapping() << " ";
+                    out << query[i].getInMemory().first << " " << query[i].getInMemory().second << endl;
+                }
+                out.close();
                 getch();
             break;
         }
