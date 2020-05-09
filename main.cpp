@@ -99,6 +99,7 @@ void updMemory(){
         }
     }
     //удаление процессов из вектора, так как они нам больше не нужны
+    sort(forDelete.begin(), forDelete.end());
     for (int i = 0; i < forDelete.size(); i++){
         query.erase(query.begin() + forDelete[i]);
         for (int j = i; j < forDelete.size(); j++)
