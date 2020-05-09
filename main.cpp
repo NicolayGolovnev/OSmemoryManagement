@@ -57,6 +57,32 @@ vector <Process> procInMemory; // процессы, которые хранятся в памяти и работают
 //если памяти недостаточно, то подается текущий процесс в файл своппинга и ожидает, когда освободиться память достаточно для того,
 //чтобы выгрузить ее в память для дальнейшей работы с ним
 
+bool createProcess(){
+    system("cls");
+    cout << "Enter a name of process: ";
+    string name;
+    cin >> name;
+    cout << "Enter a priority of process (0 - 5): ";
+    int prior; cin >> prior;
+    cout << "How long the process will be able (in sec)? ";
+    int timeLife; cin >> timeLife;
+    cout << "How much memory is needed? ";
+    int mem; cin >> mem;
+
+    Process q(name, mem, prior, timeLife);
+    query.push_back(q);
+
+    cout << "Process successfully created!";
+    cout << "Press any symbol for continue...";
+    getch();
+
+    return 1;
+}
+
+void updateProcesses(){
+    
+}
+
 bool updateStatusMonitor(clock_t timeProgramm){
 
     //для работы с цветом в консоли
@@ -74,6 +100,7 @@ bool updateStatusMonitor(clock_t timeProgramm){
         if (myTime - oldTime  >= 1){
             //test memory slots
             //MEMORY[rand() % 1000] = rand() % 2;
+            updateProcesses();
 
             system("cls");
             cout << "MONITOR STATUS\t\tWORKING TIME PROGRAMM: " << myTime << "sec\n";
@@ -123,24 +150,6 @@ bool updateStatusMonitor(clock_t timeProgramm){
     return 1;
 }
 
-bool createProcess(){
-    system("cls");
-    cout << "Enter a name of process: ";
-    string name;
-    cin >> name;
-    cout << "Enter a priority of process (0 - 5): ";
-    int prior; cin >> prior;
-    cout << "How long the process will be able (in sec)? ";
-    int timeLife; cin >> timeLife;
-    cout << "How much memory is needed? ";
-    int mem; cin >> mem;
-
-    Process q(name, mem, prior, timeLife);
-    query.push_back(q);
-
-    return 1;
-}
-
 int main(){
     srand(time(NULL));//для тестирование памяти
     clock_t myTime = clock() / CLOCKS_PER_SEC, oldTime = myTime;
@@ -164,7 +173,7 @@ int main(){
             break;
 
             case '2':
-                cout << "EXECUTE 2\n";
+                //cout << "EXECUTE 2\n";
                 updateStatusMonitor(myTime);
             break;
             
