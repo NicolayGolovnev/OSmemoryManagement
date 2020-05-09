@@ -15,7 +15,7 @@ private:
     int memory = 0; // сколько занимает места процесс в оперативной памяти
     clock_t timeCreate; // время создания процесса
     
-    char swapping = 0; //указывает, находится ли процесс в файле своппинга или нет
+    int swapping = -1; //указывает, находится ли процесс в файле своппинга или нет
     pair<int, int> inMemory; // место расположения процесса в памяти
     
 public:
@@ -25,6 +25,7 @@ public:
         this->memory = mem;
         this->priority = pr;
         this->timeLife = time;
+        this->timeCreate = clock();
     };
 
     string getName(){
@@ -39,14 +40,21 @@ public:
     int getPriority(){
         return this->priority;
     }
+    clock_t getTimeCreate(){
+        return this->timeCreate;
+    }
+    pair <int, int> getInMemory(){
+        return this->inMemory;
+    }
 
     void setTimeLife(int time){
         this->timeLife = time;
     }
 
     
-    bool getSwapping(){
-        return (this->swapping == 1 ? true : false);
+    int getSwapping(){
+        if (this->swapping == -1) return -1;
+        else return (this->swapping == 1 ? true : false);
     }
 };
 
@@ -79,11 +87,30 @@ bool createProcess(){
     return 1;
 }
 
-void updateProcesses(){
+void updMemory(){
+    vector <int> forDelete;
+
+    for (int i = 0; i < query.size(); i++){
+        query[i].setTimeLife(clock() - query[i].getTimeCreate());
+        if (query[i].getTimeLife() <= 0){
+            for (int refresh = query[i].getInMemory().first; refresh <= query[i].getInMemory().second; refresh++)
+                MEMORY[refresh] = 0;
+            forDelete.push_back(i);
+        }
+    }
+    //удаление процессов из вектора, так как они нам больше не нужны
+    for (int i = 0; i < forDelete.size(); i++){
+        query.erase(query.begin() + forDelete[i]);
+        for (int j = i; j < forDelete.size(); j++)
+            forDelete[j]--;
+    }
+}
+
+void updProcesses(){
     
 }
 
-bool updateStatusMonitor(clock_t timeProgramm){
+bool updStatusMonitor(clock_t timeProgramm){
 
     //для работы с цветом в консоли
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -100,7 +127,7 @@ bool updateStatusMonitor(clock_t timeProgramm){
         if (myTime - oldTime  >= 1){
             //test memory slots
             //MEMORY[rand() % 1000] = rand() % 2;
-            updateProcesses();
+            //updProcesses();
 
             system("cls");
             cout << "MONITOR STATUS\t\tWORKING TIME PROGRAMM: " << myTime << "sec\n";
@@ -139,7 +166,7 @@ bool updateStatusMonitor(clock_t timeProgramm){
                 //сделать вывод мест хранения в памяти
                 if (query[i].getSwapping())
                     cout << "IN SWAP FILE\n";
-                else
+                else if (query[i].getSwapping() == 0)
                     cout << "EXECUTE IN MEMORY\n";
             }
             cout << "\nPress 'q' for exit from monitor status or another key for update...\n";
@@ -168,13 +195,13 @@ int main(){
         switch (choose)
         {
             case '1':
-                cout << "EXECUTE 1\n";
+                //cout << "EXECUTE 1\n";
                 createProcess();
             break;
 
             case '2':
                 //cout << "EXECUTE 2\n";
-                updateStatusMonitor(myTime);
+                updStatusMonitor(myTime);
             break;
             
             case '3':
