@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 #include <windows.h>
 #include <time.h>
 #include <conio.h> // for getch()
@@ -13,7 +14,7 @@ private:
     int timeLife = -1; // время жизни процесса
     int priority = -1; // приоритет процесса
     int memory = 0; // сколько занимает места процесс в оперативной памяти
-    clock_t timeCreate; // время создания процесса
+    clock_t lastAccess; // время последнего обращения к процессу
     
     int swapping = -1; //указывает, находится ли процесс в файле своппинга или нет
     pair<int, int> inMemory; // место расположения процесса в памяти
@@ -25,7 +26,7 @@ public:
         this->memory = mem;
         this->priority = pr;
         this->timeLife = time;
-        this->timeCreate = clock();
+        this->lastAccess = clock() / CLOCKS_PER_SEC;
     };
 
     string getName(){
@@ -40,8 +41,8 @@ public:
     int getPriority(){
         return this->priority;
     }
-    clock_t getTimeCreate(){
-        return this->timeCreate;
+    clock_t getLastAccess(){
+        return this->lastAccess;
     }
     pair <int, int> getInMemory(){
         return this->inMemory;
@@ -49,6 +50,9 @@ public:
 
     void setTimeLife(int time){
         this->timeLife = time;
+    }
+    void setLastAccess(clock_t time){
+        this->lastAccess = time;
     }
 
     
@@ -87,11 +91,12 @@ bool createProcess(){
     return 1;
 }
 
-void updMemory(){
+void updMemory(clock_t time){
     vector <int> forDelete;
 
     for (int i = 0; i < query.size(); i++){
-        query[i].setTimeLife(clock() - query[i].getTimeCreate());
+        query[i].setTimeLife(query[i].getTimeLife() - (time - query[i].getLastAccess()));
+        query[i].setLastAccess(time);
         if (query[i].getTimeLife() <= 0){
             for (int refresh = query[i].getInMemory().first; refresh <= query[i].getInMemory().second; refresh++)
                 MEMORY[refresh] = 0;
@@ -111,7 +116,7 @@ void updProcesses(){
     
 }
 
-bool updStatusMonitor(clock_t timeProgramm){
+bool updStatusMonitor(clock_t timeProgram){
 
     //для работы с цветом в консоли
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -129,6 +134,7 @@ bool updStatusMonitor(clock_t timeProgramm){
             //test memory slots
             //MEMORY[rand() % 1000] = rand() % 2;
             //updProcesses();
+            updMemory(myTime);
 
             system("cls");
             cout << "MONITOR STATUS\t\tWORKING TIME PROGRAMM: " << myTime << "sec\n";
@@ -165,7 +171,7 @@ bool updStatusMonitor(clock_t timeProgramm){
                 cout << query[i].getMemory() << " byte - ";
                 cout << "TIME LEFT: " << query[i].getTimeLife() << " - ";
                 //сделать вывод мест хранения в памяти
-                if (query[i].getSwapping())
+                if (query[i].getSwapping() == 1)
                     cout << "IN SWAP FILE\n";
                 else if (query[i].getSwapping() == 0)
                     cout << "EXECUTE IN MEMORY\n";
