@@ -296,7 +296,7 @@ int main(){
         clock_t lastAccess;
         for (int i = 0; i < n; i++){
             in >> name >> prior >> memory >> timeLife >> lastAccess >> swap >> inMem1 >> inMem2;
-            query.push_back(Process(name, prior, memory, timeLife, 0, inMem1, inMem2));
+            query.push_back(Process(name, prior, memory, timeLife, lastAccess, inMem1, inMem2));
         }
     }
     char exit = 1;
