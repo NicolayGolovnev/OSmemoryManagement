@@ -6,7 +6,7 @@
 #include <time.h>
 #include <conio.h> // for getch()
 
-#define CAPACITY 1000
+#define CAPACITY 10000
 
 using namespace std;
 
@@ -102,7 +102,7 @@ void displayProcess(){
     for (int i = 0; i < query.size(); i++){
         cout << endl << i + 1 << ". " << query[i].getName() << " (Priority " << query[i].getPriority() << ") - ";
         cout << query[i].getMemory() << " byte, pos(" << query[i].getInMemory().first << ":" << query[i].getInMemory().second;
-        cout << ") - " << "TIME LEFT: " << query[i].getTimeLife() << " - ";
+        cout << ") - " << "TIME LEFT: " << query[i].getTimeLife() << " -- ";
         //сделать вывод мест хранения в памяти
         if (query[i].getSwapping() == 1)
             cout << "IN SWAP FILE";
@@ -227,6 +227,7 @@ void updProcesses(){
     sort(query.begin(), query.end());
     for (int i = 0; i < query.size(); i++){
         // если процесс только создали и не находится ни в памяти, не в своп-файле
+        // (либо обращение в своп файл в самое первое открытие программы)
         if (query[i].getSwapping() == -1){
             //cout << "1";
             // смотрим, хватит ли в данный момент процессу столько памяти, сколько он просит
@@ -270,7 +271,7 @@ bool updStatusMonitor(clock_t timeProgram){
     //ставим обновление процессов
     NEED_UPD = 1;
     char exit = 'a';
-    cout << "Press key for update...\n";
+    cout << "\nPress key for update...\n";
     while (exit != 'q'){
         myTime = clock() / CLOCKS_PER_SEC;
         // каждую пройденную секунду производим обновление параметров
@@ -279,12 +280,12 @@ bool updStatusMonitor(clock_t timeProgram){
             //MEMORY[rand() % 1000] = rand() % 2;
             //updProcesses();
 
-            system("cls");
             updMemory(myTime);
             if (NEED_UPD){
                 updProcesses();
                 NEED_UPD = 0;
             }
+            system("cls");
             SetConsoleTextAttribute(hConsole, (WORD) ((4 << 4) | 15));
             cout << "MONITOR STATUS\t\tWORKING TIME PROGRAMM: " << myTime << "sec\n";
             SetConsoleTextAttribute(hConsole, (WORD) ((0 << 4) | 15));
