@@ -1,6 +1,8 @@
-5
-service.exe 0 55 9955 283 0 0 55
-some_problem.exe 1 20 834 283 0 189 209
-Skype.exe 1 520 986 283 0 479 999
-EFT.exe 2 999 3000 41 1 0 0
-VSCode.exe 5 222 2743 283 0 256 478
+7
+service.exe 0 55 9272 10 0 0 55
+sfml.exe 0 50 817 10 0 56 106
+defragsvc.exe 0 50 851 10 0 107 157
+Skype.exe 1 520 303 10 0 158 678
+EFT.exe 2 999 2990 10 0 679 1678
+checker.exe 2 300 782 10 0 1679 1979
+VSCode.exe 5 222 2268 10 0 1980 2202

@@ -90,11 +90,28 @@ bool operator<(Process a, Process b){
 }
 
 int MEMORY[CAPACITY]; // наша оперативная память
+int NEED_UPD = 0; // переменная-флаг для частичного обновления процессов, когда это нужно
 vector <Process> query; // наша приоритетная очередь приложений
-vector <Process> procInMemory; // процессы, которые хранятся в памяти и работают в данный момент
 
 // если памяти недостаточно, то подается текущий процесс в файл своппинга и ожидает, когда освободиться память достаточно для того,
 // чтобы выгрузить ее в память для дальнейшей работы с ним
+
+//функция отображения процессов на экран
+void displayProcess(){
+    cout << "\n\nCurrent opening processes:\n";
+    for (int i = 0; i < query.size(); i++){
+        cout << endl << i + 1 << ". " << query[i].getName() << " (Priority " << query[i].getPriority() << ") - ";
+        cout << query[i].getMemory() << " byte, pos(" << query[i].getInMemory().first << ":" << query[i].getInMemory().second;
+        cout << ") - " << "TIME LEFT: " << query[i].getTimeLife() << " - ";
+        //сделать вывод мест хранения в памяти
+        if (query[i].getSwapping() == 1)
+            cout << "IN SWAP FILE";
+        else if (query[i].getSwapping() == 0)
+            cout << "EXECUTE IN MEMORY";
+        else
+            cout << "JUST CREATED";
+    }
+}
 
 // функция создания процесса
 // описывание всех нужных параметром процесса
@@ -126,12 +143,17 @@ bool killProcess(){
 
     string kill = "";
     system("cls");
-    cout << "Enter a process that you want kill: ";
+    displayProcess();
+    cout << "\n\nEnter a process that you want kill or just his number: ";
     cin >> kill;
-    for (int i = 0; i < query.size(); i++){
-        if (query[i].getName() == kill)
+    int num = atoi(kill.c_str());
+    for (int i = 0; i < query.size(); i++)
+        if (query[i].getName() == kill || num == (i + 1)){
             query[i].setTimeLife(-1);
-    }
+            cout << "\nThe process '" << query[i].getName() << "' was killed!\nPress any button for continue...";
+        }
+    getch();
+        
     return 1;
 }
 
@@ -146,6 +168,8 @@ void updMemory(clock_t time){
         }
         // очистка памяти
         if (query[i].getTimeLife() <= 0){
+            //если нужно обновить список процессов, ставим флаг
+            NEED_UPD = 1;
             for (int refresh = query[i].getInMemory().first; refresh <= query[i].getInMemory().second; refresh++)
                 MEMORY[refresh] = 0;
             forDelete.push_back(i);
@@ -233,6 +257,8 @@ bool updStatusMonitor(clock_t timeProgram){
 
     //monitor status
     clock_t myTime = clock() / CLOCKS_PER_SEC, oldTime = myTime;
+    //ставим обновление процессов
+    NEED_UPD = 1;
     char exit = 'a';
     cout << "Press key for update...\n";
     while (exit != 'q'){
@@ -245,9 +271,13 @@ bool updStatusMonitor(clock_t timeProgram){
 
             system("cls");
             updMemory(myTime);
-            updProcesses();
-            
+            if (NEED_UPD){
+                updProcesses();
+                NEED_UPD = 0;
+            }
+            SetConsoleTextAttribute(hConsole, (WORD) ((4 << 4) | 15));
             cout << "MONITOR STATUS\t\tWORKING TIME PROGRAMM: " << myTime << "sec\n";
+            SetConsoleTextAttribute(hConsole, (WORD) ((0 << 4) | 15));
             cout << "\n\nCAPACITY OF MEMORY - " << CAPACITY << " byte";
             // отрисовка оперативной памяти
             cout << "\nRandom Access Memory:\n";
@@ -277,19 +307,7 @@ bool updStatusMonitor(clock_t timeProgram){
                 cout << "-";
             cout << " \n";
             // отрисовка всех процессов по приоритету
-            cout << "\n\nCurrent opening processes:\n";
-            for (int i = 0; i < query.size(); i++){
-                cout << endl << i + 1 << ". " << query[i].getName() << " (Priority " << query[i].getPriority() << ") - ";
-                cout << query[i].getMemory() << " byte, pos(" << query[i].getInMemory().first << ":" << query[i].getInMemory().second;
-                cout << ") - " << "TIME LEFT: " << query[i].getTimeLife() << " - ";
-                //сделать вывод мест хранения в памяти
-                if (query[i].getSwapping() == 1)
-                    cout << "IN SWAP FILE";
-                else if (query[i].getSwapping() == 0)
-                    cout << "EXECUTE IN MEMORY";
-                else
-                    cout << "JUST CREATED";
-            }
+            displayProcess();
             cout << "\n\n\nPress 'q' for exit from monitor status or another key for update...\n";
             oldTime = myTime;
         }
@@ -301,8 +319,10 @@ bool updStatusMonitor(clock_t timeProgram){
 // основная программа - небольшое лист меню
 int main(){
     srand(time(NULL));//для тестирование памяти
-    clock_t myTime = clock() / CLOCKS_PER_SEC, oldTime = myTime;
+    clock_t myTime = clock() / CLOCKS_PER_SEC;
+    // смотрим на наличие сохраненных процессов после завершения программы
     ifstream in("processes.txt");
+    // если нашли, загружаем их в очередь
     if (in){
         int n; in >> n;
         string name;
