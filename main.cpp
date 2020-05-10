@@ -121,6 +121,20 @@ bool createProcess(){
     return 1;
 }
 
+//функция принудительного завершения процесса
+bool killProcess(){
+
+    string kill = "";
+    system("cls");
+    cout << "Enter a process that you want kill: ";
+    cin >> kill;
+    for (int i = 0; i < query.size(); i++){
+        if (query[i].getName() == kill)
+            query[i].setTimeLife(-1);
+    }
+    return 1;
+}
+
 // обновление времени жизни процесса и чистка памяти
 void updMemory(clock_t time){
     vector <int> forDelete;
@@ -296,7 +310,7 @@ int main(){
         clock_t lastAccess;
         for (int i = 0; i < n; i++){
             in >> name >> prior >> memory >> timeLife >> lastAccess >> swap >> inMem1 >> inMem2;
-            query.push_back(Process(name, prior, memory, timeLife, lastAccess, inMem1, inMem2));
+            query.push_back(Process(name, prior, memory, timeLife, 0, inMem1, inMem2));
         }
     }
     char exit = 1;
@@ -318,7 +332,10 @@ int main(){
                 //cout << "EXECUTE 1\n";
                 createProcess();
             break;
-
+            case '2':
+                //killProcess
+                killProcess();
+            break;
             case '3':
                 //cout << "EXECUTE 2\n";
                 updStatusMonitor(myTime);
