@@ -123,10 +123,18 @@ bool createProcess(){
     cin >> name;
     cout << "Enter a priority of process (0 - 5): ";
     int prior; cin >> prior;
+    do{
+        cout << "\nWrong number, try again!\t";
+        cin >> prior;
+    }while (prior < 0 || prior > 5);
     cout << "How long the process will be able (in sec)? ";
     int timeLife; cin >> timeLife;
     cout << "How much memory is needed? ";
     int mem; cin >> mem;
+    do{
+        cout << "\nMemory mustn't be negative, try again!\t";
+        cin >> mem;
+    }while(mem < 0);
 
     Process q(name, mem, prior, timeLife);
     query.push_back(q);
@@ -162,10 +170,12 @@ void updMemory(clock_t time){
     vector <int> forDelete;
 
     for (int i = 0; i < query.size(); i++){
-        if (query[i].getSwapping() == 0){
-            query[i].setTimeLife(query[i].getTimeLife() - (time - query[i].getLastAccess()));
-            query[i].setLastAccess(time);
-        }
+        if (query[i].getSwapping() == 0)
+            if (query[i].getTimeLife() < 9999){
+                query[i].setTimeLife(query[i].getTimeLife() - (time - query[i].getLastAccess()));
+                query[i].setLastAccess(time);
+            }
+        
         // очистка памяти
         if (query[i].getTimeLife() <= 0){
             //если нужно обновить список процессов, ставим флаг
@@ -349,7 +359,6 @@ int main(){
         switch (choose)
         {
             case '1':
-                //cout << "EXECUTE 1\n";
                 createProcess();
             break;
             case '2':
@@ -357,7 +366,6 @@ int main(){
                 killProcess();
             break;
             case '3':
-                //cout << "EXECUTE 2\n";
                 updStatusMonitor(myTime);
             break;
             
