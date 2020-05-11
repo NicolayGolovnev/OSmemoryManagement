@@ -1,9 +1,9 @@
 8
-service.exe 0 550 9039 8 0 0 550
-sfml.exe 0 5000 584 8 0 551 5551
-defragsvc.exe 0 500 618 8 0 5552 6052
-Skype.exe 2 3033 70 8 0 6053 9086
-PlugPlay.exe 2 222 9999 0 0 9087 9309
-EFT.exe 3 999 2821 0 1 9447838 9448837
-checker.exe 4 300 549 8 0 9310 9610
-VSCode.exe 5 222 254 8 0 9611 9833
+VSCode.exe 5 222 90
+test.exe 5 200 94
+checker.exe 4 300 385
+EFT.exe 3 999 2657
+Discord.exe 3 6000 967
+PlugPlay.exe 2 222 9999
+service.exe 0 550 8875
+defragsvc.exe 0 500 454

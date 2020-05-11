@@ -23,25 +23,14 @@ private:
     
 public:
     // Process(Name, Memory, Priority, Time Life)
-    Process(string n, int mem, int priority, int time){
-        this->name = n;
-        this->memory = mem;
-        this->priority = priority;
-        this->timeLife = time;
-        // последнее время использование процесса, для правильного отображения остатка времени
-        this->lastAccess = clock() / CLOCKS_PER_SEC;
-    }
-
-    // Process(Name, Memory, Priority, Time Life, Pos in Memory)
-    // Process(name, prior, memory, timeLife, lastAccess, inMem1, inMem2)
-    Process(string n, int priority, int mem, int timeLife, clock_t lastAccess, int inMem1, int inMem2){
+    Process(string n, int priority, int mem, int timeLife){
         this->name = n;
         this->memory = mem;
         this->priority = priority;
         this->timeLife = timeLife;
         // последнее время использование процесса, для правильного отображения остатка времени
-        this->lastAccess = lastAccess;
-        this->inMemory = make_pair(inMem1, inMem2);
+        this->lastAccess = clock() / CLOCKS_PER_SEC;
+        this->inMemory = make_pair(0, 0);
     }
 
     string getName(){
@@ -82,12 +71,15 @@ public:
 };
 
 // перегрузка операторов для сортировки вектора-массива
-bool operator>(Process a, Process b){
+bool comp(Process a, Process b){
+    return a.getPriority() > b.getPriority();
+}
+/* bool operator>(Process a, Process b){
     return (a.getPriority() > b.getPriority() ? true : false);
 }
 bool operator<(Process a, Process b){
     return (a.getPriority() < b.getPriority() ? true : false);
-}
+} */
 
 int MEMORY[CAPACITY]; // наша оперативная память
 int NEED_UPD = 0; // переменная-флаг для частичного обновления процессов, когда это нужно
@@ -101,7 +93,7 @@ void displayProcess(){
     cout << "\n\nCurrent opening processes:\n";
     for (int i = 0; i < query.size(); i++){
         cout << endl << i + 1 << ". " << query[i].getName() << " (Priority " << query[i].getPriority() << ") - ";
-        cout << query[i].getMemory() << " byte, pos(" << query[i].getInMemory().first << ":" << query[i].getInMemory().second;
+        cout << query[i].getMemory() << " blocks, pos(" << query[i].getInMemory().first << ":" << query[i].getInMemory().second;
         cout << ") - " << "TIME LEFT: " << query[i].getTimeLife() << " -- ";
         //сделать вывод мест хранения в памяти
         if (query[i].getSwapping() == 1)
@@ -123,20 +115,20 @@ bool createProcess(){
     cin >> name;
     cout << "Enter a priority of process (0 - 5): ";
     int prior; cin >> prior;
-    do{
+    while (prior < 0 || prior > 5){
         cout << "\nWrong number, try again!\t";
         cin >> prior;
-    }while (prior < 0 || prior > 5);
+    }
     cout << "How long the process will be able (in sec)? ";
     int timeLife; cin >> timeLife;
-    cout << "How much memory is needed? ";
+    cout << "How much memory is needed (in blocks)? ";
     int mem; cin >> mem;
-    do{
+    while(mem < 0){
         cout << "\nMemory mustn't be negative, try again!\t";
         cin >> mem;
-    }while(mem < 0);
+    }
 
-    Process q(name, mem, prior, timeLife);
+    Process q(name, prior, mem, timeLife);
     query.push_back(q);
 
     cout << "Process successfully created!\n";
@@ -158,8 +150,9 @@ bool killProcess(){
     for (int i = 0; i < query.size(); i++)
         if (query[i].getName() == kill || num == (i + 1)){
             query[i].setTimeLife(-1);
-            cout << "\nThe process '" << query[i].getName() << "' was killed!\nPress any button for continue...";
+            cout << "\nThe process '" << query[i].getName() << "' was killed!";
         }
+    cout << "\nPress any button for continue...";
     getch();
         
     return 1;
@@ -224,7 +217,7 @@ int goInMemory(Process* exe){
 // обновление списка процессов
 void updProcesses(){
     // сортируем процессы в порядке возрастания приоритета выполнения
-    sort(query.begin(), query.end());
+    sort(query.begin(), query.end(), comp);
     for (int i = 0; i < query.size(); i++){
         // если процесс только создали и не находится ни в памяти, не в своп-файле
         // (либо обращение в своп файл в самое первое открытие программы)
@@ -289,7 +282,7 @@ bool updStatusMonitor(clock_t timeProgram){
             SetConsoleTextAttribute(hConsole, (WORD) ((4 << 4) | 15));
             cout << "MONITOR STATUS\t\tWORKING TIME PROGRAMM: " << myTime << "sec\n";
             SetConsoleTextAttribute(hConsole, (WORD) ((0 << 4) | 15));
-            cout << "\n\nCAPACITY OF MEMORY - " << CAPACITY << " byte";
+            cout << "\n\nCAPACITY OF MEMORY - " << CAPACITY << " blocks";
             // отрисовка оперативной памяти
             cout << "\nRandom Access Memory:\n";
             cout << " ";
@@ -337,11 +330,10 @@ int main(){
     if (in){
         int n; in >> n;
         string name;
-        int prior, memory, timeLife, swap, inMem1, inMem2;
-        clock_t lastAccess;
+        int prior, memory, timeLife;
         for (int i = 0; i < n; i++){
-            in >> name >> prior >> memory >> timeLife >> lastAccess >> swap >> inMem1 >> inMem2;
-            query.push_back(Process(name, prior, memory, timeLife, 0, inMem1, inMem2));
+            in >> name >> prior >> memory >> timeLife;
+            query.push_back(Process(name, prior, memory, timeLife));
         }
     }
     char exit = 1;
@@ -377,8 +369,7 @@ int main(){
                 out << query.size() << endl;
                 for (int i = 0; i < query.size(); i++){
                     out << query[i].getName() << " " << query[i].getPriority() << " " << query[i].getMemory() << " ";
-                    out << query[i].getTimeLife() << " " << (int)(query[i].getLastAccess()) << " " << query[i].getSwapping() << " ";
-                    out << query[i].getInMemory().first << " " << query[i].getInMemory().second << endl;
+                    out << query[i].getTimeLife() << endl;
                 }
                 out.close();
                 getch();
