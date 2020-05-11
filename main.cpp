@@ -6,7 +6,7 @@
 #include <time.h>
 #include <conio.h> // for getch()
 
-#define CAPACITY 10000
+#define CAPACITY 1000
 
 using namespace std;
 
@@ -70,16 +70,10 @@ public:
     }
 };
 
-// перегрузка операторов для сортировки вектора-массива
+// компаратор для сортировки вектора-массива
 bool comp(Process a, Process b){
     return a.getPriority() > b.getPriority();
 }
-/* bool operator>(Process a, Process b){
-    return (a.getPriority() > b.getPriority() ? true : false);
-}
-bool operator<(Process a, Process b){
-    return (a.getPriority() < b.getPriority() ? true : false);
-} */
 
 int MEMORY[CAPACITY]; // наша оперативная память
 int NEED_UPD = 0; // переменная-флаг для частичного обновления процессов, когда это нужно
